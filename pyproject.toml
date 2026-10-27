@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "coda-certified-tools"
+version = "1.1.0"
+description = "CODA certified tools: pre-vetted methods and SQL for common business questions."
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "pandas>=2.0",
+    "sqlalchemy>=2.0",
+    "psycopg[binary]>=3.1",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+coda_certified = ["sql/*.sql", "catalog.json"]

@@ -1,0 +1,93 @@
+{
+  "tools": [
+    {
+      "name": "GlobalBranchesSanitizedSales",
+      "version": "1.1.0",
+      "status": "certified",
+      "certified_by": "Data Governance",
+      "certified_on": "2026-07-15",
+      "domain": "Sales",
+      "summary": "Sales totals across all branches in USD, optionally by category, branch or product, with POS training sessions excluded.",
+      "python": {
+        "import": "from coda_certified import global_branches_sanitized_sales",
+        "function": "coda_certified.sales.global_branches_sanitized_sales",
+        "signature": "global_branches_sanitized_sales(db, start_date, end_date, grain='quarter', group_by=None, branch_codes=None, categories=None, include_training=False) -> pandas.DataFrame",
+        "returns": "DataFrame[period: date, <group_by>: str (when set), sales_usd: float, transactions: int]"
+      },
+      "sql_file": "sql/global_branches_sanitized_sales.sql",
+      "parameters": [
+        {
+          "name": "db",
+          "type": "str | Engine | Connection",
+          "required": true,
+          "sql": null,
+          "doc": "Database URL (e.g. os.environ['SALES_DB_URL']) or SQLAlchemy engine/connection."
+        },
+        {
+          "name": "start_date",
+          "type": "date | str",
+          "required": true,
+          "sql": "sold_at >= :start_date",
+          "doc": "Inclusive start of the range."
+        },
+        {
+          "name": "end_date",
+          "type": "date | str",
+          "required": true,
+          "sql": "sold_at < :end_date",
+          "doc": "Exclusive end of the range."
+        },
+        {
+          "name": "grain",
+          "type": "'day' | 'week' | 'month' | 'quarter' | 'year'",
+          "required": false,
+          "default": "quarter",
+          "sql": "date_trunc(:grain, sold_at)",
+          "doc": "Bucket size for the period column."
+        },
+        {
+          "name": "group_by",
+          "type": "'category' | 'branch' | 'product' | None",
+          "required": false,
+          "default": null,
+          "sql": "CASE :group_by ... END AS group_key",
+          "doc": "Break totals down by this dimension; None returns one row per period."
+        },
+        {
+          "name": "branch_codes",
+          "type": "list[str] | None",
+          "required": false,
+          "default": null,
+          "sql": "b.code = ANY(:branch_codes)",
+          "doc": "Limit to these branches; None means all."
+        },
+        {
+          "name": "categories",
+          "type": "list[str] | None",
+          "required": false,
+          "default": null,
+          "sql": "c.name = ANY(:categories)",
+          "doc": "Limit to these category names; None means all."
+        },
+        {
+          "name": "include_training",
+          "type": "bool",
+          "required": false,
+          "default": false,
+          "sql": "ps.mode = 'live'",
+          "doc": "Keep POS training-session sales (not real revenue)."
+        }
+      ],
+      "install": "pip install \"coda-certified-tools @ git+https://github.com/marcosnav/certified-tools-demo.git@v1.1.0\"",
+      "example": "df = global_branches_sanitized_sales(os.environ['SALES_DB_URL'], '2026-01-01', '2026-10-01', grain='month', group_by='category')",
+      "tags": [
+        "sales",
+        "branches",
+        "categories",
+        "multi-currency",
+        "usd",
+        "certified"
+      ]
+    }
+  ]
+}
